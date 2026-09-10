@@ -33,7 +33,19 @@ class MessageBubble extends StatelessWidget {
                 height: 30,
                 margin: const EdgeInsets.only(right: 8, top: 2),
                 decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: const Icon(Icons.home_rounded, size: 16, color: Colors.white),
+                clipBehavior: Clip.antiAlias,
+                child: Image.network(
+                  'https://api.dicebear.com/9.x/avataaars/png?seed=SarahHouseHunter&top=longHairStraight,longHairCurly,longHairBun&facialHairType=blank&clothesType=blazerShirt,shirtScoopNeck&skinColor=light,brown,tanned',
+                  width: 30,
+                  height: 30,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Icon(Icons.home_rounded, size: 16, color: Colors.white);
+                  },
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.home_rounded, size: 16, color: Colors.white),
+                ),
               ),
             Flexible(
               child: Column(
