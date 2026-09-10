@@ -7,8 +7,9 @@ class MessageBubble extends StatelessWidget {
   final String role;
   final String content;
   final List<Listing>? listings;
+  final String? userName;
 
-  const MessageBubble({super.key, required this.role, required this.content, this.listings});
+  const MessageBubble({super.key, required this.role, required this.content, this.listings, this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +83,18 @@ class MessageBubble extends StatelessWidget {
                 ],
               ),
             ),
+            if (isUser)
+              Container(
+                width: 30,
+                height: 30,
+                margin: const EdgeInsets.only(left: 8, top: 2),
+                decoration: const BoxDecoration(color: AppColors.primaryDark, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Text(
+                  (userName != null && userName!.trim().isNotEmpty) ? userName!.trim()[0].toUpperCase() : '?',
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                ),
+              ),
           ],
         ),
       ),

@@ -29,6 +29,8 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
           ? await ApiClient.signup(name: _nameCtrl.text.trim(), email: _emailCtrl.text.trim(), password: _passwordCtrl.text)
           : await ApiClient.login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
       await TokenStore.save(result['access_token'] as String);
+      final name = result['name'] as String?;
+      if (name != null && name.isNotEmpty) await TokenStore.saveName(name);
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = 'Something went wrong. Check your details and try again.');

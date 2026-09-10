@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/token_store.dart';
 import '../core/app_theme.dart';
 import '../models/chat_message.dart';
 import '../models/listing.dart';
 import '../auth/auth_bottom_sheet.dart';
+import 'post_listing_bottom_sheet.dart';
 import 'message_bubble.dart';
 import 'typing_indicator.dart';
 
@@ -19,6 +21,15 @@ class _ChatScreenState extends State<ChatScreen> {
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _sending = false;
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    TokenStore.readName().then((name) {
+      if (mounted) setState(() => _userName = name);
+    });
+  }
 
   Future<void> _send() async {
     final text = _inputCtrl.text.trim();
@@ -41,6 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       final action = res['action'] as String?;
       if (action == 'open_auth' || action == 'open_google_auth') _openAuthSheet();
+      if (action == 'open_post_listing') _openPostListingSheet();
     } catch (e) {
       setState(() {
         _messages.add(ChatMessage(role: 'assistant', content: "Sorry, I couldn't reach the server. Try again?"));
@@ -58,6 +70,21 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => const AuthBottomSheet(),
     );
+  }
+
+  Future<void> _openPostListingSheet() async {
+    final posted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const PostListingBottomSheet(),
+    );
+    if (posted == true && mounted) {
+      setState(() {
+        _messages.add(ChatMessage(role: 'assistant', content: "Your listing is live! Renters can find it now."));
+      });
+      _scrollToBottom();
+    }
   }
 
   void _scrollToBottom() {
@@ -105,6 +132,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       role: _messages[i].role,
                       content: _messages[i].content,
                       listings: _listingsByMessageIndex[i],
+                      userName: _userName,
                     ),
                   ),
           ),
