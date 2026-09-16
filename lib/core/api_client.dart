@@ -82,4 +82,31 @@ class ApiClient {
     final res = await _dio.post('/listings', data: formData);
     return res.data as Map<String, dynamic>;
   }
+
+  static Future<Map<String, dynamic>> updateListing({
+    required int listingId,
+    String? title,
+    String? description,
+    double? price,
+    int? bedrooms,
+    String? address,
+    List<File> images = const [],
+  }) async {
+    final formMap = <String, dynamic>{
+      if (title != null) 'title': title,
+      if (price != null) 'price': price,
+      if (description != null) 'description': description,
+      if (bedrooms != null) 'bedrooms': bedrooms,
+      if (address != null) 'address': address,
+      if (images.isNotEmpty)
+        'images': [
+          for (final img in images)
+            await MultipartFile.fromFile(img.path, filename: img.path.split('/').last),
+        ],
+    };
+    final formData = FormData.fromMap(formMap);
+    final res = await _dio.put('/listings/$listingId', data: formData);
+    return res.data as Map<String, dynamic>;
+  }
+
 }

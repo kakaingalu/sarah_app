@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../core/app_theme.dart';
 import '../core/token_store.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthBottomSheet extends StatefulWidget {
   final bool startOnSignup;
@@ -34,6 +35,33 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = 'Something went wrong. Check your details and try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final googleSignIn = GoogleSignIn.instance;
+      await googleSignIn.initialize(
+        serverClientId: '434465452860-rvs2q5k5g3tn0gv0tua41rd87ucujok0.apps.googleusercontent.com',
+      );
+      final account = await googleSignIn.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null) {
+        throw Exception('No ID token returned from Google');
+      }
+      final result = await ApiClient.googleLogin(idToken: idToken);
+      await TokenStore.save(result['access_token'] as String);
+      final name = result['name'] as String?;
+      if (name != null && name.isNotEmpty) await TokenStore.saveName(name);
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      setState(() => _error = 'Google sign-in failed. Try again.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -79,7 +107,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               side: const BorderSide(color: AppColors.border),
             ),
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Sign-In coming soon'))),
+            onPressed: _loading ? null : _handleGoogleSignIn,
             icon: const Icon(Icons.g_mobiledata_rounded, size: 22),
             label: const Text('Continue with Google'),
           ),

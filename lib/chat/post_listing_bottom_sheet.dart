@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../core/api_client.dart';
+import '../core/token_store.dart';
 import '../core/app_theme.dart';
 
 class PostListingBottomSheet extends StatefulWidget {
@@ -44,7 +45,7 @@ class _PostListingBottomSheetState extends State<PostListingBottomSheet> {
       _error = null;
     });
     try {
-      await ApiClient.createListing(
+      final res = await ApiClient.createListing(
         title: title,
         description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
         price: price,
@@ -52,6 +53,10 @@ class _PostListingBottomSheetState extends State<PostListingBottomSheet> {
         address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
         images: _images,
       );
+      // Save listing ID for future updates
+      if (res['id'] != null) {
+        await TokenStore.saveListingId(res['id'] as int);
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       setState(() => _error = "Couldn't post your listing. Check your details and try again.");

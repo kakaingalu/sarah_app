@@ -6,6 +6,7 @@ import '../models/chat_message.dart';
 import '../models/listing.dart';
 import '../auth/auth_bottom_sheet.dart';
 import 'post_listing_bottom_sheet.dart';
+import 'update_listing_bottom_sheet.dart';
 import 'message_bubble.dart';
 import 'typing_indicator.dart';
 
@@ -53,6 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final action = res['action'] as String?;
       if (action == 'open_auth' || action == 'open_google_auth') _openAuthSheet();
       if (action == 'open_post_listing') _openPostListingSheet();
+      if (action == 'open_update_listing') _openUpdateListingSheet();
     } catch (e) {
       setState(() {
         _messages.add(ChatMessage(role: 'assistant', content: "Sorry, I couldn't reach the server. Try again?"));
@@ -85,7 +87,43 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
     }
+
+  Future<void> _openUpdateListingSheet() async {
+    final listingId = await TokenStore.readListingId();
+    if (listingId == null) {
+      if (mounted) {
+        setState(() {
+          _messages.add(ChatMessage(role: 'assistant', content: "I couldn't find your listing. Try posting one first."));
+        });
+        _scrollToBottom();
+      }
+      return;
+    }
+
+    final updated = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => UpdateListingBottomSheet(listingId: listingId),
+    );
+    if (updated == true && mounted) {
+      setState(() {
+        _messages.add(ChatMessage(role: 'assistant', content: "Your listing is updated! Changes are live now."));
+      });
+      _scrollToBottom();
+    }
   }
+
+  Future<void> _logout() async {
+    await TokenStore.clear();
+    if (mounted) {
+      setState(() {
+        _messages.clear();
+        _openAuthSheet();
+      });
+    }
+  }
+
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -118,6 +156,27 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'logout') {
+                _logout();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 18, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Text('Logout', style: TextStyle(color: Colors.redAccent)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
