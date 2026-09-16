@@ -87,6 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       _scrollToBottom();
     }
+  }
 
   Future<void> _openUpdateListingSheet() async {
     final listingId = await TokenStore.readListingId();
