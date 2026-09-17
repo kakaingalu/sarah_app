@@ -5,6 +5,7 @@ import '../core/app_theme.dart';
 import '../models/chat_message.dart';
 import '../models/listing.dart';
 import '../auth/auth_bottom_sheet.dart';
+import 'listing_detail_sheet.dart';
 import 'post_listing_bottom_sheet.dart';
 import 'update_listing_bottom_sheet.dart';
 import 'message_bubble.dart';
