@@ -109,4 +109,52 @@ class ApiClient {
     return res.data as Map<String, dynamic>;
   }
 
+
+  static Future<Map<String, dynamic>> initiatePayment(int listingId) async {
+    try {
+      final response = await _dio.post(
+        '/payments/initiate',
+        data: {'listing_id': listingId},
+        options: Options(headers: {'Authorization': 'Bearer ${await TokenStore.read()}'}),
+      );
+      return {
+        'redirect_url': response.data['redirect_url'] ?? '',
+        'order_tracking_id': response.data['order_tracking_id'] ?? '',
+      };
+    } catch (e) {
+      throw Exception('Failed to initiate payment: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyPayment(String orderTrackingId) async {
+    try {
+      final response = await _dio.post(
+        '/payments/verify/$orderTrackingId',
+        options: Options(headers: {'Authorization': 'Bearer ${await TokenStore.read()}'}),
+      );
+      return {
+        'status': response.data['status'] ?? 'PENDING',
+        'contact_info': response.data['contact_info'],
+      };
+    } catch (e) {
+      throw Exception('Failed to verify payment: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> checkContactUnlocked(int listingId) async {
+    try {
+      final response = await _dio.get(
+        '/payments/listing/$listingId/unlocked',
+        options: Options(headers: {'Authorization': 'Bearer ${await TokenStore.read()}'}),
+      );
+      return {
+        'owner_name': response.data['owner_name'] ?? 'Unknown',
+        'owner_email': response.data['owner_email'] ?? '',
+        'listing_id': response.data['listing_id'] ?? listingId,
+        'is_unlocked': response.data['is_unlocked'] ?? false,
+      };
+    } catch (e) {
+      throw Exception('Failed to check contact: $e');
+    }
+  }
 }

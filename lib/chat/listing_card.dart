@@ -1,10 +1,28 @@
 import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 import '../models/listing.dart';
+import '../payments/payment_modal.dart';
 
 class ListingCard extends StatelessWidget {
   final Listing listing;
   const ListingCard({super.key, required this.listing});
+
+  void _openPaymentModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => PaymentModal(
+        listingId: listing.id,
+        listingTitle: listing.title,
+        isAgent: listing.isAgent,
+        onPaymentSuccess: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment successful! Contact info unlocked.')),
+          );
+        },
+      ),
+      isScrollControlled: true,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +75,19 @@ class ListingCard extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(listing.address!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                   ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _openPaymentModal(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFC1652F),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Apply', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
               ],
             ),
           ),
